@@ -1,0 +1,32 @@
+[package]
+name = "linkrouter"
+version = "0.1.0"
+edition = "2021"
+description = "Tiny macOS default-browser shim that routes links to Chrome profiles"
+
+[dependencies]
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", default-features = false, features = [
+    "std",
+    "NSAppleEventDescriptor",
+    "NSAppleEventManager",
+    "NSArray",
+    "NSEnumerator",
+    "NSNotification",
+    "NSString",
+    "NSURL",
+    "NSValue",
+] }
+objc2-app-kit = { version = "0.3", default-features = false, features = [
+    "std",
+    "libc",
+    "NSApplication",
+    "NSResponder",
+    "NSRunningApplication",
+] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

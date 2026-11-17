@@ -1,0 +1,14 @@
+# LinkRouter rules — read on every click, no restart needed.
+# [section] = Chrome profile directory (see chrome://version → "Profile Path").
+# First match wins; anything unmatched opens in Chrome's last active window.
+#
+#   opener <bundle-id>   link clicked in that app
+#   domain <host>        host and all its subdomains
+#   prefix <host/path>   URL starts with this, at a path boundary
+#
+# Test:  ~/Applications/LinkRouter.app/Contents/MacOS/LinkRouter route <url> [opener]
+
+[Profile 3]   # work account
+opener com.tinyspeck.slackmacgap
+domain acme.io
+prefix github.com/acme-corp
