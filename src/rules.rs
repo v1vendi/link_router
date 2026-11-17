@@ -52,12 +52,26 @@ fn strip_scheme_www(s: &str) -> &str {
     s.strip_prefix("www.").unwrap_or(s)
 }
 
+/// Only these schemes are passed on to Chrome. Anything else (in particular a string
+/// starting with '-', which a raw Apple event could carry) would reach Chrome's or
+/// `open`'s argv as a command-line switch.
+pub fn is_browser_url(url: &str) -> bool {
+    url.split_once(':').is_some_and(|(scheme, _)| {
+        ["http", "https", "file"]
+            .iter()
+            .any(|s| scheme.eq_ignore_ascii_case(s))
+    })
+}
+
 /// For http(s) URLs: (lowercase host, lowercase "host-without-www + path").
 fn split_web_url(url: &str) -> Option<(String, String)> {
     let (scheme, rest) = url.split_once("://")?;
     if !scheme.eq_ignore_ascii_case("http") && !scheme.eq_ignore_ascii_case("https") {
         return None;
     }
+    // Browsers treat '\' as '/' in http(s) URLs; do the same so the host we match is
+    // the host Chrome loads (otherwise "evil.com\@acme.io" would look like acme.io).
+    let rest = &rest.replace('\\', "/");
     let end = rest.find(['/', '?', '#']).unwrap_or(rest.len());
     let authority = rest[..end].rsplit('@').next().unwrap_or("");
     let host = if authority.starts_with('[') {
@@ -129,5 +143,25 @@ mod tests {
         assert_eq!(r("https://user@evil.com/acme.io", None), None);
         assert_eq!(r("https://example.com", Some("com.apple.mail")), None);
         assert_eq!(r("file:///tmp/acme.io.html", None), None);
+        assert_eq!(r("https://evil.com\\@acme.io/", None), None);
+        assert_eq!(r("https://evil.com\\@github.com/acme-corp", None), None);
+    }
+
+    #[test]
+    fn backslash_is_slash() {
+        let w = Some("Profile 3".to_string());
+        assert_eq!(r("https://github.com\\acme-corp\\x", None), w);
+    }
+
+    #[test]
+    fn browser_urls() {
+        assert!(is_browser_url("https://acme.io"));
+        assert!(is_browser_url("HTTP://acme.io"));
+        assert!(is_browser_url("file:///tmp/a.html"));
+        assert!(!is_browser_url("--load-extension=/tmp/x"));
+        assert!(!is_browser_url("-a:Calculator"));
+        assert!(!is_browser_url("javascript:alert(1)"));
+        assert!(!is_browser_url("chrome://settings"));
+        assert!(!is_browser_url("acme.io"));
     }
 }

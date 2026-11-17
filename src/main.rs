@@ -134,6 +134,10 @@ define_class!(
             let rules = load_rules();
             for url in urls.iter().filter_map(|u| u.absoluteString()) {
                 let url = url.to_string();
+                if !rules::is_browser_url(&url) {
+                    log(&format!("{url} rejected: not an http(s)/file URL"));
+                    continue;
+                }
                 let profile = rules::route(&rules, &url, opener.as_deref());
                 log(&format!("{url} opener={opener:?} profile={profile:?}"));
                 open_link(&url, profile);

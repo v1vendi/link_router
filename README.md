@@ -46,7 +46,11 @@ Check a rule without opening anything:
 ```
 
 To turn on the debug log, run `touch ~/Library/Logs/LinkRouter.log`. Every routed link is
-then appended to it. Delete the file to turn it off.
+then appended to it. Delete the file to turn it off. The log holds full URLs, which can
+include tokens, so don't leave it on.
+
+LinkRouter only passes on `http`, `https` and `file` URLs. Anything else is dropped, so a
+crafted "URL" can never reach Chrome's command line as a switch.
 
 ## How it works
 
@@ -80,3 +84,7 @@ cargo test          # rule parsing and matching
 This project was written with [Claude Code](https://claude.com/claude-code)
 (Anthropic's Claude) working with a human author, who directed, tested and
 reviewed it. That includes the code, tests and this README.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
